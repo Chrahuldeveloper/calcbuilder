@@ -1,26 +1,39 @@
 import { useState } from "react";
 import { create } from "zustand";
-import { 
-  DndContext, 
-  closestCenter, 
-  PointerSensor, 
-  useSensor, 
-  useSensors
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
 } from "@dnd-kit/core";
 import {
   SortableContext,
   verticalListSortingStrategy,
-  useSortable
+  useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { arrayMove } from "@dnd-kit/sortable";
+import Switch from "@mui/material/Switch";
 
 const useCalculatorStore = create((set) => ({
   components: [
-    "7", "8", "9", "+",
-    "4", "5", "6", "-",
-    "1", "2", "3", "*",
-    "0", "C", "=", "/",
+    "7",
+    "8",
+    "9",
+    "+",
+    "4",
+    "5",
+    "6",
+    "-",
+    "1",
+    "2",
+    "3",
+    "*",
+    "0",
+    "C",
+    "=",
+    "/",
   ],
   setComponents: (components) => set({ components }),
 }));
@@ -85,6 +98,8 @@ export default function CalculatorBuilder() {
     }
   };
 
+  const label = { inputProps: { "aria-label": "Switch demo" } };
+
   const handleClick = (value) => {
     if (value === "C") {
       setExpression("");
@@ -111,26 +126,36 @@ export default function CalculatorBuilder() {
         }`}
       >
         <button
-          className="p-2 mb-4 text-white bg-gray-700 rounded"
+          className="mb-4 text-white  "
           onClick={() => setDarkMode(!darkMode)}
         >
-          Toggle Dark Mode
+          <Switch
+            {...label}
+            defaultChecked
+            sx={{
+              "& .MuiSwitch-thumb": { backgroundColor: "#808080" },
+              "& .MuiSwitch-track": { backgroundColor: "#808080" },
+            }}
+          />
         </button>
         <div className="p-4 mb-4 text-xl text-right bg-gray-800 rounded-md">
           {expression || "0"}
         </div>
         <DndContext
-          sensors={sensors} 
-          collisionDetection={closestCenter} 
+          sensors={sensors}
+          collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
         >
-          <SortableContext items={components} strategy={verticalListSortingStrategy}>
+          <SortableContext
+            items={components}
+            strategy={verticalListSortingStrategy}
+          >
             <div className="grid grid-cols-4 gap-2">
               {components.map((item) => (
-                <SortableItem 
-                  key={item} 
-                  id={item} 
-                  onClick={() => handleClick(item)} 
+                <SortableItem
+                  key={item}
+                  id={item}
+                  onClick={() => handleClick(item)}
                   darkMode={darkMode}
                 >
                   {item}
