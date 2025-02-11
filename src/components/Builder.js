@@ -1,32 +1,26 @@
 import { useState } from "react";
 import { create } from "zustand";
-import { DndContext, closestCenter } from "@dnd-kit/core";
+import { 
+  DndContext, 
+  closestCenter, 
+  PointerSensor, 
+  useSensor, 
+  useSensors
+} from "@dnd-kit/core";
 import {
   SortableContext,
   verticalListSortingStrategy,
-  useSortable,
+  useSortable
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { arrayMove } from "@dnd-kit/sortable";
 
 const useCalculatorStore = create((set) => ({
   components: [
-    "7",
-    "8",
-    "9",
-    "+",
-    "4",
-    "5",
-    "6",
-    "-",
-    "1",
-    "2",
-    "3",
-    "*",
-    "0",
-    "C",
-    "=",
-    "/",
+    "7", "8", "9", "+",
+    "4", "5", "6", "-",
+    "1", "2", "3", "*",
+    "0", "C", "=", "/",
   ],
   setComponents: (components) => set({ components }),
 }));
@@ -45,6 +39,7 @@ const SortableItem = ({ id, onClick, children, darkMode }) => {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+    touchAction: "none", // Prevents touch issues
   };
 
   return (
@@ -57,6 +52,7 @@ const SortableItem = ({ id, onClick, children, darkMode }) => {
       {...attributes}
       {...listeners}
       onMouseDown={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
       onClick={(e) => {
         e.stopPropagation();
         onClick(id);
@@ -71,6 +67,11 @@ export default function CalculatorBuilder() {
   const { components, setComponents } = useCalculatorStore();
   const [expression, setExpression] = useState("");
   const [darkMode, setDarkMode] = useState(true);
+
+  // **This is the main fix**
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
 
   const handleDragEnd = (event) => {
     const { active, over } = event;
@@ -106,34 +107,30 @@ export default function CalculatorBuilder() {
     >
       <div
         className={`p-6 w-96 rounded-xl shadow-md ${
-          darkMode ? "bg-black text-white" : "bg-black text-black"
+          darkMode ? "bg-black text-white" : "bg-white text-black"
         }`}
       >
         <button
-          className="mb-4 p-2 bg-gray-700 text-white rounded"
+          className="p-2 mb-4 text-white bg-gray-700 rounded"
           onClick={() => setDarkMode(!darkMode)}
         >
           Toggle Dark Mode
         </button>
-        <div
-          className={`mb-4 p-4 bg-gray-800 text-white rounded-md text-right text-xl`}
-        >
+        <div className="p-4 mb-4 text-xl text-right bg-gray-800 rounded-md">
           {expression || "0"}
         </div>
         <DndContext
-          collisionDetection={closestCenter}
+          sensors={sensors} 
+          collisionDetection={closestCenter} 
           onDragEnd={handleDragEnd}
         >
-          <SortableContext
-            items={components}
-            strategy={verticalListSortingStrategy}
-          >
+          <SortableContext items={components} strategy={verticalListSortingStrategy}>
             <div className="grid grid-cols-4 gap-2">
               {components.map((item) => (
-                <SortableItem
-                  key={item}
-                  id={item}
-                  onClick={() => handleClick(item)}
+                <SortableItem 
+                  key={item} 
+                  id={item} 
+                  onClick={() => handleClick(item)} 
                   darkMode={darkMode}
                 >
                   {item}
